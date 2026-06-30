@@ -38,17 +38,17 @@ const RULES = [
     when: [
       { metric: 'spend', op: '>=', value: 50 },
       { metric: 'conversions', op: '>=', value: 1 },
-      { metric: 'roas', op: '<', value: 1.5 },   // tune to your break-even
+      { metric: 'roas', op: '<', value: 'breakevenRoas' },   // resolved from Setup (config token)
     ],
     action: { type: 'ADJUST_BUDGET', pct: -0.20 },
-    note: 'ROAS < 1.5 over 7d on a spending campaign — trim 20%',
+    note: 'ROAS below break-even over 7d on a spending campaign — trim 20%',
   },
   {
     id: 'scale-strong-roas',
     window: 7,
     when: [
       { metric: 'spend', op: '>=', value: 50 },
-      { metric: 'roas', op: '>=', value: 4.0 },  // tune to your target + headroom
+      { metric: 'roas', op: '>=', value: 'scaleRoas' },  // resolved from Setup (config token)
     ],
     action: { type: 'ADJUST_BUDGET', pct: 0.20 },
     note: 'ROAS ≥ 4.0 over 7d — scale budget 20%',

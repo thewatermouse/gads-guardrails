@@ -1,9 +1,12 @@
 /**
- * Config.js — THE ONLY FILE YOU EDIT PER ACCOUNT (besides Rules.js).
+ * Config.js — DEFAULTS. You normally never edit this.
  *
- * Secrets (developer token, OAuth client secret, refresh token) live in
- * Script Properties — see Setup.js. They share the same keys as gads-warehouse,
- * so if both run in the same account you reuse the same credentials.
+ * Plug-and-play path: use the "⚙ gads-guardrails → Setup" menu in the Sheet.
+ * It stores per-account values as CFG_* Script Properties, merged over these
+ * defaults by applyConfigOverrides_() at the bottom. Secrets share the same
+ * keys as gads-warehouse, so the same account reuses the same credentials.
+ *
+ * Power-user path: hardcode here and deploy via clasp.
  */
 const CONFIG = {
   // ── Account ────────────────────────────────────────────────────────────
@@ -25,4 +28,27 @@ const CONFIG = {
   maxActionsPerRun: 10,            // hard cap on changes applied in one applyApprovals() run
   maxBudgetChangePct: 0.30,        // clamp any single budget change to ±30%
   minDailyBudget: 10,             // never set a daily budget below this ($)
+
+  // ── Rule thresholds (referenced by Rules.js as config tokens) ──────────
+  breakevenRoas: 1.5,              // rules trim budget below this ROAS
+  scaleRoas: 4.0,                  // rules scale budget at/above this ROAS
 };
+
+/**
+ * Merge Setup-dialog values (CFG_* Script Properties) over the defaults above.
+ * Lets a copied template run with zero code edits. Booleans/numbers parsed.
+ */
+(function applyConfigOverrides_() {
+  try {
+    const p = PropertiesService.getScriptProperties();
+    const str = ['customerId', 'loginCustomerId', 'oauthClientId', 'spreadsheetId', 'apiVersion'];
+    const num = ['maxActionsPerRun', 'maxBudgetChangePct', 'minDailyBudget', 'breakevenRoas', 'scaleRoas'];
+    str.forEach(k => { const v = p.getProperty('CFG_' + k); if (v) CONFIG[k] = v; });
+    num.forEach(k => { const v = p.getProperty('CFG_' + k); if (v !== null && v !== '') CONFIG[k] = Number(v); });
+    const dr = p.getProperty('CFG_dryRun');
+    if (dr !== null && dr !== '') CONFIG.dryRun = (dr === 'true' || dr === '1');
+    if (CONFIG.loginCustomerId && /^X+$/.test(CONFIG.loginCustomerId) && CONFIG.customerId) {
+      CONFIG.loginCustomerId = CONFIG.customerId;
+    }
+  } catch (e) { /* no Properties in this context; defaults stand */ }
+})();

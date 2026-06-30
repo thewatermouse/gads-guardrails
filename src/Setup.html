@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: -apple-system, Arial, sans-serif; font-size: 13px; margin: 10px; color: #202124; }
+    h3 { margin: 4px 0 2px; }
+    .hint { color: #5f6368; font-size: 11px; margin: 0 0 8px; }
+    label { display: block; margin-top: 10px; font-weight: 600; }
+    input[type=text], input[type=password], input[type=number] {
+      width: 100%; box-sizing: border-box; padding: 6px; margin-top: 3px;
+      border: 1px solid #dadce0; border-radius: 4px; }
+    .row { display: flex; gap: 8px; }
+    .row > div { flex: 1; }
+    .sec { background:#f1f3f4; border-radius:6px; padding:8px 10px; margin-top:12px; }
+    .danger { background:#fce8e6; }
+    .chk { margin-top: 12px; }
+    button { margin-top: 14px; width: 100%; padding: 9px; border: none; border-radius: 4px;
+             background: #1a73e8; color: #fff; font-weight: 600; cursor: pointer; }
+    #msg { margin-top: 10px; font-size: 12px; color: #137333; }
+  </style>
+</head>
+<body>
+  <h3>Account</h3>
+  <p class="hint">Point this at the SAME sheet gads-warehouse fills.</p>
+  <label>Customer ID</label>
+  <input type="text" id="customerId" placeholder="1234567890">
+  <label>Login / Manager (MCC) ID</label>
+  <input type="text" id="loginCustomerId" placeholder="blank if no MCC">
+
+  <div class="sec">
+    <h3>Credentials <span class="hint">(reuse warehouse's — set once)</span></h3>
+    <label>OAuth Client ID</label>
+    <input type="text" id="oauthClientId" placeholder="...apps.googleusercontent.com">
+    <label>OAuth Client Secret</label>
+    <input type="password" id="oauthClientSecret" placeholder="••••••••">
+    <label>Developer Token</label>
+    <input type="password" id="developerToken" placeholder="••••••••">
+    <label>Refresh Token</label>
+    <input type="password" id="refreshToken" placeholder="1//••••••••">
+  </div>
+
+  <h3 style="margin-top:14px">Rule thresholds</h3>
+  <div class="row">
+    <div><label>Break-even ROAS</label><input type="number" step="0.1" id="breakevenRoas" placeholder="1.5"></div>
+    <div><label>Scale ROAS</label><input type="number" step="0.1" id="scaleRoas" placeholder="4.0"></div>
+  </div>
+
+  <div class="sec danger">
+    <h3>Safety</h3>
+    <div class="chk"><label style="font-weight:600"><input type="checkbox" id="dryRun" checked>
+      Dry-run (validate only, never apply)</label>
+      <p class="hint">Keep this ON until you trust the proposals.</p></div>
+    <div class="row">
+      <div><label>Max budget change</label><input type="number" step="0.05" id="maxBudgetChangePct" placeholder="0.30"></div>
+      <div><label>Min daily budget $</label><input type="number" id="minDailyBudget" placeholder="10"></div>
+    </div>
+    <label>Max actions per run</label>
+    <input type="number" id="maxActionsPerRun" placeholder="10">
+  </div>
+
+  <button onclick="save()">Save</button>
+  <div id="msg"></div>
+
+  <script>
+    google.script.run.withSuccessHandler(function (v) {
+      ['customerId','loginCustomerId','oauthClientId','breakevenRoas','scaleRoas',
+       'maxBudgetChangePct','minDailyBudget','maxActionsPerRun'].forEach(function (k) {
+        var el = document.getElementById(k); if (el && v[k] !== '' && v[k] != null) el.value = v[k];
+      });
+      ['oauthClientSecret','developerToken','refreshToken'].forEach(function (k) {
+        if (v[k] === '••••••••') document.getElementById(k).placeholder = '•••• saved (blank = keep)';
+      });
+      document.getElementById('dryRun').checked = !!v.dryRun;
+    }).loadSetup();
+
+    function save() {
+      var form = { dryRun: document.getElementById('dryRun').checked };
+      ['customerId','loginCustomerId','oauthClientId','oauthClientSecret','developerToken',
+       'refreshToken','breakevenRoas','scaleRoas','maxBudgetChangePct','minDailyBudget',
+       'maxActionsPerRun'].forEach(function (k) { form[k] = document.getElementById(k).value; });
+      document.getElementById('msg').textContent = 'Saving…';
+      google.script.run
+        .withSuccessHandler(function (m) { document.getElementById('msg').textContent = m; })
+        .withFailureHandler(function (e) { document.getElementById('msg').style.color = '#c5221f';
+          document.getElementById('msg').textContent = 'Error: ' + e.message; })
+        .saveSetup(form);
+    }
+  </script>
+</body>
+</html>

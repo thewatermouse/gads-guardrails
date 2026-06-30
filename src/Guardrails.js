@@ -75,6 +75,12 @@ function clausesPass_(clauses, m) {
 }
 
 function compare_(a, op, b) {
+  // A clause value can be a config token (e.g. 'breakevenRoas') so thresholds
+  // come from Setup instead of being hardcoded in Rules.js.
+  if (typeof b === 'string') {
+    if (CONFIG[b] === undefined) throw new Error('Rule references unknown config token: ' + b);
+    b = Number(CONFIG[b]);
+  }
   switch (op) {
     case '>': return a > b;   case '>=': return a >= b;
     case '<': return a < b;   case '<=': return a <= b;

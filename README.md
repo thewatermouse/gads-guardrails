@@ -45,8 +45,16 @@ Two functions, deliberately split:
 
 Plain declarative objects in [`src/Rules.js`](src/Rules.js) — see
 [RULES.md](RULES.md) for the full schema. Three sensible starters ship in the
-box (pause zero-conversion spenders, trim low-ROAS, scale strong-ROAS). Tune the
-thresholds to your account; they're just numbers.
+box (pause zero-conversion spenders, trim low-ROAS, scale strong-ROAS). The two
+ROAS rules read their thresholds from Setup (`breakevenRoas` / `scaleRoas`), so
+tuning per account is a form field, not a code edit.
+
+## Two ways to deploy
+
+- **Plug-and-play (no code)** — open a copy of the template Sheet and use the
+  **🛡 gads-guardrails** menu: *Setup → Check connection → Propose → review →
+  Apply*. See [TEMPLATE.md](TEMPLATE.md). Ships with Dry-run ON.
+- **Power user (clasp)** — clone and deploy as in Quick start below.
 
 ## Quick start
 
